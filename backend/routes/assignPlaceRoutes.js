@@ -6,19 +6,17 @@ const router = express.Router({mergeParams: true});
 
 router
     .route('/')
+    // get all assigned place
     .get(
         adminProtect,
         admin,
         assignPlaceController.gettAllAssignPlace
-    )// get all assigned place
+    )
+    // post the assigned place
     .post(
         adminProtect,
         admin,
         assignPlaceController.createAssignPlace
     )
-
-//router.route('/:id', adminProtect, admin)
-
-//router.get('/all', assignPlaceController.gettAllAssignPlace)
 
 module.exports = router

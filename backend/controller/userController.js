@@ -123,4 +123,43 @@ const getOwnProfile = catchAsync(async (req, res) => {
 
 const deleteUser = handler.deleteOne(User);
 
-module.exports = { login, createUser, getAllUser, getUserProfile, deleteUser, getOwnProfile}
+
+
+
+
+const Party = require('../model/partyModel');
+
+const createParty = catchAsync(async (req, res, next) => {
+    try {
+        const { name } = req.body
+
+        const existParty = await Party.findOne({ name })
+        if (existParty) {
+            res.status(400)
+            throw new Error('Party name already exist')
+        }
+        const party = new Party({
+            name
+
+        })
+        if (req.file) {
+            party.image = req.file.path
+        } else {
+            res.status(400)
+            throw new Error(201).send('image is required')
+        }
+
+        await party.save()
+        res.status(201).send(party)
+    } catch (error) {
+        res.status(500)
+        return res.send({ error: (error.message) ? error.message : "Internal server error" });
+
+    }
+})
+
+
+
+
+
+module.exports = { login, createUser, getAllUser, getUserProfile, deleteUser, getOwnProfile, createParty}
