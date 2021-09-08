@@ -10,12 +10,45 @@ const PartySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    count: {
-        type: Number,
+    willVote: {
+        type: Boolean,
         required: true,
-        default: 0
-    }
+        default: false
+    },
+    voter:{
+        type: mongoose.Schema.ObjectId,
+        ref:'VoterList',
+        required: true
+    },
+    updatedBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: "Users",
+        //required: true
+    },
+    createdBy: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Admins',
+        required: true
+    },
 },{ timestamps: true })
+
+PartySchema.pre(/^find/, function (next) {
+    this.populate({
+        path: 'updatedBy',
+        select: 'name'
+    }).populate({
+        path: 'createdBy',
+        select: 'name'
+    }).populate({
+        path: 'voter',
+        select:'name voterId'
+
+
+    })
+    next();
+})
+
+
 
 const Party = mongoose.model('Partys', PartySchema);
 module.exports = Party

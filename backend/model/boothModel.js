@@ -1,41 +1,28 @@
 const mongoose = require('mongoose')
 
-const createBooth = mongoose.Schema({
-    name: {
+const createBoothSchema = mongoose.Schema({
+    boothName: {
         type: String,
-        required: true
-    },
-    voterId: {
-        type: Number,
         required: true,
         unique: true,
     },
-    age: {
-        type: String,
-        required: true,
-    },
-    sex: {
-        type: String,
-        required: true,
-    },
-    relation: {
-        type: String,
-        default:''
-        
-    },
-    contact: {
-        type: String,
-        minlength: 10,
-        maxlength: 10,
-        default:''
+    // voters: {
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: 'VoterList',
+    //     required: true
+    // }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+    timestamp: true,
+})
 
-        
-    },
-    updatedBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: "Users",
-        required: true
-    },
-
+createBoothSchema.virtual('voter', {
+    ref: 'VoterList',
+    foreignField: "booth",//find all related assigned by which match this id of user
+    localField: '_id'
 
 })
+
+const Booths = mongoose.model("Booths", createBoothSchema)
+module.exports = Booths

@@ -6,7 +6,8 @@ const addParty = catchAsync(async (req, res, next) => {
     try {
         const createParty = new Party({
             name: req.body.name,
-            
+            voter: req.params.voterId,
+            createdBy : req.admin._id
         });
         if (req.file) {
             createParty.photo = req.file.path
@@ -27,7 +28,7 @@ const addParty = catchAsync(async (req, res, next) => {
 
 const partyList = catchAsync(async (req, res, next) => {
     try {
-        const party = await Party.find();
+        const party = await Party.find()
 
         res.status(200).send(party)
     } catch (error) {

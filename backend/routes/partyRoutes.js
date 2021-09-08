@@ -4,15 +4,14 @@ const { addParty, partyList, partyDelete, partyDetail, test} = require('../contr
 const { upload} = require('../middleware/filehelper')
 // const Party = require('../model/partyModel');
 // const multer = require('multer')
+const {protect, adminProtect, admin} = require('../middleware/auth')
 
 
-
-router.post('/partycreate', upload.single('photo'), addParty)
+router.post('/partycreate/:voterId', upload.single('photo'), adminProtect, addParty)
 router.get('/list', partyList)
 router.delete('/:id', partyDelete)
 router.get('/:id', partyDetail )
 router.get('/', test)
-
 
 
 module.exports = {

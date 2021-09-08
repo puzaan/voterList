@@ -65,7 +65,7 @@ const UserSchema = mongoose.Schema({
 
 UserSchema.virtual('assined', {
     ref: 'AssignedPlace',
-    foreignField: "user",
+    foreignField: "user",//find all related assigned by which match this id of user
     localField: '_id'
 
 })

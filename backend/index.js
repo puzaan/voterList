@@ -10,6 +10,9 @@ const assignPlaceRouter = require('./routes/assignPlaceRoutes')
 const adminRouter = require('./routes/adminRoutes')
 const partyRoutes = require('./routes/partyRoutes')
 const path = require('path')
+const voterRoutes = require('./routes/voterRoutes')
+const boothRoutes = require('./routes/boothsRoutes')
+
 
 dotenv.config()
 connectDB();
@@ -29,6 +32,8 @@ app.use('/api/party', partyRoutes.routers)
 app.use('/api/user', userRouter)
 app.use('/api/place', assignPlaceRouter)
 app.use('/api/admin', adminRouter)
+app.use('/api/voter', voterRoutes)
+app.use('/api/booth', boothRoutes)
 
 
 
