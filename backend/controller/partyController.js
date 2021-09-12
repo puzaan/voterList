@@ -73,8 +73,19 @@ const partyDetail = catchAsync(async (req, res, next) => {
     }
 })
 
-const test = catchAsync(async (req, res) => {
-    res.send('server is running')
+const updateParty = catchAsync(async (req, res, next) => {
+    const party = await Party.findById(req.params.id);
+    if (party) {
+        party.willVote = req.body.willVote || party.willVote;
+        party.maybe = req.body.maybe || party.maybe;
+        party.updatedBy = req.user.id
+
+        updatedparty = await party.save();
+        res.json(updatedparty)
+    } else {
+        res.status(404)
+        throw new Error('party details not found')
+}
 })
 
-module.exports = { test, addParty, partyList, partyDelete, partyDetail }
+module.exports = { addParty, partyList, partyDelete, partyDetail, updateParty }

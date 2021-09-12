@@ -11,7 +11,33 @@ const createBoothSchema = mongoose.Schema({
     //     ref: 'VoterList',
     //     required: true
     // }
-}, {
+
+    amla: {
+        type: Number,
+        default: 0,
+        required: true
+    },
+    abc: {
+        type: Number,
+        default: 0,
+        required: true
+    },
+    yes: {
+        type: Number,
+        default: 0,
+        required: true
+    },
+    no: {
+        type: Number,
+        default: 0,
+        required: true
+    },
+    maybe: {
+        type: Number,
+        default: 0,
+        required: true
+    },
+},{
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
     timestamp: true,

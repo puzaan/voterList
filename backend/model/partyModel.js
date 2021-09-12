@@ -4,7 +4,6 @@ const PartySchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        unique: true,
     },
     photo: {
         type: String,
@@ -15,6 +14,12 @@ const PartySchema = new mongoose.Schema({
         required: true,
         default: false
     },
+    maybe:{
+        type: Boolean,
+        required: true,
+        default:false
+    },
+
     voter:{
         type: mongoose.Schema.ObjectId,
         ref:'VoterList',
@@ -42,8 +47,6 @@ PartySchema.pre(/^find/, function (next) {
     }).populate({
         path: 'voter',
         select:'name voterId'
-
-
     })
     next();
 })

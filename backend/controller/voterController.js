@@ -18,7 +18,8 @@ exports.createVoterList = catchAsync(async (req, res, next) => {
 exports.getAllVoters = catchAsync(async (req, res, next) => {
     let filter = {}
     if (req.params.voterId) filter = { voter: req.params.voterId}
-    const voterList = await Voters.find(filter).populate('party');
+    const voterList = await Voters.find(filter)
+        //.populate('party');
     res.status(200).json({
         status: 'success',
         results: voterList.length,
@@ -27,8 +28,21 @@ exports.getAllVoters = catchAsync(async (req, res, next) => {
         }
     })
 })
+
+// exports.joinVoterAndParty = catchAsync(async (req, res, next) => {
+//     Voters.aggregate(pipeline[
+//         {
+//         $lookup: {
+//                 from:''
+//             }
+//         }
+//     ])
+// })
+
+
 exports.getVoterDetail = catchAsync(async (req, res, next) => {
-    const voter = await Voters.findById(req.params.id).populate('party');
+    const voter = await Voters.findById(req.params.id)
+        //.populate('party');
     if (voter) {
         res.json(voter)
     } else {
@@ -39,6 +53,7 @@ exports.getVoterDetail = catchAsync(async (req, res, next) => {
 exports.updateVoter = catchAsync(async (req, res, next) => {
     const voter = await Voters.findById(req.params.id)
     // if (!req.body.createdBy) req.body.createdBy = req.admin._id
+    
     if (voter) {
         // if (!req.body.updatedBy) req.body.updatedBy = req.user._id
         // const newVoter = await voter.save(req.body);
@@ -48,7 +63,14 @@ exports.updateVoter = catchAsync(async (req, res, next) => {
         voter.age = req.body.age || voter.age;
         voter.sex = req.body.sex || voter.sex;
         voter.relation = req.body.relation || voter.relation;
-        voter.contact = req.body.contact || voter.contact
+        voter.contact = req.body.contact || voter.contact;
+        voter.probility = req.body.probility 
+        if (!req.body.voterTo && req.body.probility == 'yes') {
+            voter.voteTo = "AMLA"
+        } else {
+            voter.voteTo = req.body.voteTo
+        }
+        
 
 
         updateVoters = await voter.save();
@@ -59,3 +81,35 @@ exports.updateVoter = catchAsync(async (req, res, next) => {
     }
     
 })
+
+
+// exports.createParty = catchAsync(async (req, res, next) => {
+//     const voter = await Voters.findById(req.params.id)
+    
+// })
+
+exports.addParty = catchAsync(async (req, res, next) => {
+    try {
+        const voter = await Voters.findById(req.params.id)
+
+        const createParty = {
+            name: req.body.name,
+            //createdBy: req.admin._id
+        };
+        if (req.file) {
+            createParty.photo = req.file.path
+        } else {
+            res.status(400)
+            throw new Error('photo file required')
+        }
+        voter.voteTo.push(createParty)
+        await voter.save()
+        res.status(201).send(voter)
+    } catch (error) {
+        res.status(500);
+        return res.send({ error: (error.message) ? error.message : "Internal server error" });
+
+    }
+});
+
+

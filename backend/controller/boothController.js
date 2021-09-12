@@ -1,4 +1,3 @@
-const bodyParser = require('body-parser')
 const catchAsync = require('express-async-handler')
 const Booths = require('../model/boothModel')
 
@@ -25,6 +24,7 @@ exports.allBooth = catchAsync(async (req, res, next) => {
 
 exports.getOneBooth = catchAsync(async (req, res, next) => {
     const booth = await Booths.findById(req.params.id).populate('voter')
+    
     if (booth) {
         res.json(booth);
     } else {

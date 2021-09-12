@@ -12,19 +12,18 @@ const partyRoutes = require('./routes/partyRoutes')
 const path = require('path')
 const voterRoutes = require('./routes/voterRoutes')
 const boothRoutes = require('./routes/boothsRoutes')
-
+const morgan = require('morgan')
 
 dotenv.config()
 connectDB();
 
 const app = express();
-
 app.use(cors());
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-
+app.use(morgan())
 app.get('/', (req, res) => {
     res.send('server is running')
 })
@@ -34,8 +33,6 @@ app.use('/api/place', assignPlaceRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/voter', voterRoutes)
 app.use('/api/booth', boothRoutes)
-
-
 
 
 app.use(notFound);
