@@ -1,19 +1,30 @@
 const catchAsync = require('express-async-handler')
-const User = require('../model/userModel')
 const Voters = require('../model/voterModel')
+const factory = require('./handlerController')
 
-exports.createVoterList = catchAsync(async (req, res, next) => {
-    if (!req.body.createdBy) req.body.createdBy = req.admin._id
-    if (!req.body.booth) req.body.booth = req.params.boothId
-    const newVoter = await Voters.create(req.body);
-    res.status(201).json({
-        status: 'success',
+// this middleware is called in voter router
+exports.setAdminAndBoothId = (req, res, next) => {
+    if (!req.body.createdBy) req.body.createdBy = req.admin._id;
+    if (!req.body.booth) req.body.booth = req.params.boothId;
+    next();
+}
 
-        data: {
-            newVoter
-        }
-    })
-})
+
+
+
+// exports.createVoterList = catchAsync(async (req, res, next) => {
+
+//     if (!req.body.createdBy) req.body.createdBy = req.admin._id
+//     if (!req.body.booth) req.body.booth = req.params.boothId
+//     const newVoter = await Voters.create(req.body);
+//     res.status(201).json({
+//         status: 'success',
+
+//         data: {
+//             newVoter
+//         }
+//     })
+// })
 
 exports.getAllVoters = catchAsync(async (req, res, next) => {
     let filter = {}
@@ -29,27 +40,16 @@ exports.getAllVoters = catchAsync(async (req, res, next) => {
     })
 })
 
-// exports.joinVoterAndParty = catchAsync(async (req, res, next) => {
-//     Voters.aggregate(pipeline[
-//         {
-//         $lookup: {
-//                 from:''
-//             }
-//         }
-//     ])
+// exports.getVoterDetail = catchAsync(async (req, res, next) => {
+//     const voter = await Voters.findById(req.params.id)
+//         //.populate('party');
+//     if (voter) {
+//         res.json(voter)
+//     } else {
+//         res.status(404);
+//         throw new Error('voter details not found')
+//     }
 // })
-
-
-exports.getVoterDetail = catchAsync(async (req, res, next) => {
-    const voter = await Voters.findById(req.params.id)
-        //.populate('party');
-    if (voter) {
-        res.json(voter)
-    } else {
-        res.status(404);
-        throw new Error('voter details not found')
-    }
-})
 exports.updateVoter = catchAsync(async (req, res, next) => {
     const voter = await Voters.findById(req.params.id)
     // if (!req.body.createdBy) req.body.createdBy = req.admin._id
@@ -64,12 +64,11 @@ exports.updateVoter = catchAsync(async (req, res, next) => {
         voter.sex = req.body.sex || voter.sex;
         voter.relation = req.body.relation || voter.relation;
         voter.contact = req.body.contact || voter.contact;
-        voter.probility = req.body.probility 
-        if (!req.body.voterTo && req.body.probility == 'yes') {
-            voter.voteTo = "AMLA"
-        } else {
-            voter.voteTo = req.body.voteTo
-        }
+        voter.yes = req.body.yes || 0;
+        voter.no = req.body.no || voter.no;
+        voter.abcParty = req.body.abcParty || voter.abcParty;
+        voter.dcbParty = req.body.dcbParty || voter.dcbParty;
+        voter.otherParty = req.body.otherParty || voter.otherParty;
         
 
 
@@ -83,33 +82,48 @@ exports.updateVoter = catchAsync(async (req, res, next) => {
 })
 
 
-// exports.createParty = catchAsync(async (req, res, next) => {
-//     const voter = await Voters.findById(req.params.id)
-    
-// })
+exports.createVoterList = factory.createOne(Voters);
 
-exports.addParty = catchAsync(async (req, res, next) => {
-    try {
-        const voter = await Voters.findById(req.params.id)
-
-        const createParty = {
-            name: req.body.name,
-            //createdBy: req.admin._id
-        };
-        if (req.file) {
-            createParty.photo = req.file.path
-        } else {
-            res.status(400)
-            throw new Error('photo file required')
-        }
-        voter.voteTo.push(createParty)
-        await voter.save()
-        res.status(201).send(voter)
-    } catch (error) {
-        res.status(500);
-        return res.send({ error: (error.message) ? error.message : "Internal server error" });
-
+exports.updateVoterDetails = catchAsync(async (req, res, next) => {
+    const voter = await Voters.findByIdAndUpdate(req.params.id, req.body)
+    if (!voter) {
+        return next (new Error('no document found with thid id', 404))
     }
-});
+    res.status(200).json({
+        status: 'success',
+        data: {
+            voter
+        }
+    })
+})
+exports.getVoterDetail = factory.getOne(Voters)
+
+exports.deleteVoter = factory.deleteOne(Voters)
+
+
+
+// exports.addParty = catchAsync(async (req, res, next) => {
+//     try {
+//         const voter = await Voters.findById(req.params.id)
+
+//         const createParty = {
+//             name: req.body.name,
+//             //createdBy: req.admin._id
+//         };
+//         if (req.file) {
+//             createParty.photo = req.file.path
+//         } else {
+//             res.status(400)
+//             throw new Error('photo file required')
+//         }
+//         voter.voteTo.push(createParty)
+//         await voter.save()
+//         res.status(201).send(voter)
+//     } catch (error) {
+//         res.status(500);
+//         return res.send({ error: (error.message) ? error.message : "Internal server error" });
+
+//     }
+// });
 
 

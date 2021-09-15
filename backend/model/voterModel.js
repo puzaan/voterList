@@ -1,51 +1,6 @@
 const mongoose = require('mongoose')
-
-// const PartySchema = new mongoose.Schema({
-//     name: {
-//         type: String,
-//         required: true,
-//     },
-//     photo: {
-//         type: String,
-//         required: true
-//     },
-//     willVote: {
-//         type: Boolean,
-//         required: true,
-//         default: false
-//     },
-//     maybe: {
-//         type: Boolean,
-//         required: true,
-//         default: false
-//     },
-
-//     // voter: {
-//     //     type: mongoose.Schema.ObjectId,
-//     //     ref: 'VoterList',
-//     //     required: true
-//     // },
-//     updatedBy: {
-//         type: mongoose.Schema.ObjectId,
-//         ref: "Users",
-//         //required: true
-//     },
-//     // createdBy: {
-//     //     type: mongoose.Schema.ObjectId,
-//     //     ref: 'Admins',
-//     //     required: true
-//     // },
-// }, { timestamps: true })
-
-// PartySchema.pre(/^find/, function (next) {
-//     this.populate({
-//         path: 'updatedBy',
-//         select: 'name'
-//     })
-//     next();
-// })
-
-
+const { findOneAndUpdate } = require('./boothModel')
+const booth = require('./boothModel')
 const voterListSchema = mongoose.Schema({
     name: {
         type: String,
@@ -71,25 +26,50 @@ const voterListSchema = mongoose.Schema({
     },
     contact: {
         type: Number,
-        minlength: 10,
-        maxlength: 10,
+        // minlength: 10,
+        // maxlength: 10,
         default: null
     },
-    voteTo: {
-        type: String,
-        default: '',
-        
+
+    yes: {
+        type: Number,
+        min: 0,
+        max: 1,
+        default: 0
     },
-    probility: {
-        type: String,
-        
-        default: ''
+    no: {
+        type: Number,
+
+        min: 0,
+        max: 1,
+        default: 0
     },
-    updatedBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: "Users",
-        //required: true
+    maybe: {
+        type: Number,
+
+        min: 0,
+        max: 1,
+        default: 0
     },
+    abcParty: {
+        type: Number,
+
+        min: 0,
+        max: 1,
+        default: 0
+    },
+    otherParty: {
+        type: Number,
+
+        min: 0,
+        max: 1,
+        default: 0
+    },
+    // updatedBy: {
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: "Users",
+    //     //required: true
+    // },
     createdBy: {
         type: mongoose.Schema.ObjectId,
         ref: 'Admins',
@@ -100,56 +80,73 @@ const voterListSchema = mongoose.Schema({
         ref: 'Booths',
         required: true
     },
-    // voteTo: [PartySchema]
-    // amla: {
-    //     type: Number,
-    //     default: 0,
-        
-    // },
-    // abc: {
-    //     type: Number,
-    //     default: 0,
-        
-    // },
-    // yes: {
-    //     type: Number,
-    //     default: 0,
-        
-    // },
-    // no: {
-    //     type: Number,
-    //     default: 0,
-        
-    // },
-    // maybe: {
-    //     type: Number,
-    //     default: 0,
-        
-    // },
 
-
-},{
+}, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
     timestamp: true,
 })
-voterListSchema.pre(/^find/, function (next){
+voterListSchema.pre(/^find/, function (next) {
     this.populate({
-        path:'updatedBy',
-        select:'name'
-    }).populate({
         path: 'createdBy',
         select: 'name'
-    }).populate({
-        path: 'booth',
-        select:'boothName'
     })
     next();
 })
-// voterListSchema.virtual('party', {
-//     ref: 'Partys',
-//     foreignField: 'voter',
-//     localField: '_id'
-// })
+
+voterListSchema.statics.calculateTotalYes = async function (boothId) {
+    console.log(boothId)
+    const stats = await this.aggregate([
+        {
+            $match: { booth: boothId }
+        },
+        {
+            $group: {
+                _id: '$booth',
+                yesVooter: { $sum: '$yes' },
+                noVote: { $sum: '$no' },
+                maybe: { $sum: '$maybe' },
+                abcParty: { $sum: '$abcParty' },
+                otherParty: { $sum: '$otherParty' },
+                totalVote: {$sum: 1},
+
+
+            }
+        }
+    ])
+    console.log(stats)
+    await booth.findByIdAndUpdate(boothId, {
+            yes: stats[0].yesVooter,
+            no: stats[0].noVote,
+            maybe: stats[0].maybe,
+            abc: stats[0].abcParty,
+            other: stats[0].otherParty,
+            totalVoter: stats[0].totalVote
+
+        })
+
+
+}
+
+voterListSchema.post('save', function () {
+    this.constructor.calculateTotalYes(this.booth);
+
+})
+voterListSchema.pre(/^findOneAnd/, async function (next) {
+    this.v = await this.findOne();
+    console.log(this.v);
+    next();
+    
+})
+findOneAndUpdate
+voterListSchema.post(/^findOneAnd/, async function () {
+    await this.v.constructor.calculateTotalYes(this.v.booth);
+})
+
+
+
+
 const Voters = mongoose.model('VoterList', voterListSchema)
 module.exports = Voters
+
+
